@@ -30,6 +30,7 @@ Curated skills for building native and cross-platform mobile applications with A
 | `mobile-development` | Full mobile development guide (iOS, Android, Flutter, Games) |
 | `refactor-swift-to-flutter` | Convert Swift code to Flutter/Dart |
 | `flutter-sdk-to-swift` | Convert Flutter/Dart code to Swift/iOS |
+| `app-store-preflight` | Scan iOS/macOS projects for App Store rejection patterns |
 
 ---
 
@@ -87,6 +88,38 @@ When to use:
 > "Create a SwiftUI view that fetches user data from an API and displays it in a list"
 > "Set up a Combine publisher to handle API responses"
 > "Implement MVVM with SwiftData for a todo app"
+```
+
+**Skill:** `app-store-preflight`
+
+Scan iOS/macOS projects for common App Store rejection patterns before submission.
+
+```
+When to use:
+- Preparing an app for App Store review
+- After receiving a rejection from Apple
+- Auditing metadata, subscriptions, privacy manifests, entitlements
+- Checking compliance with Apple Review Guidelines
+```
+
+**Prerequisites:**
+- **asc CLI** — `brew install asc` (App Store Connect CLI)
+- **jq** — Optional, for JSON inspection
+
+**Reference Guides:**
+- `references/guidelines/by-app-type/` - App-type-specific checklists
+- `references/rules/metadata/` - Metadata rules
+- `references/rules/subscription/` - Subscription rules
+- `references/rules/privacy/` - Privacy manifest rules
+- `references/rules/design/` - Design compliance rules
+- `references/rules/entitlements/` - Entitlement rules
+
+**Example Usage:**
+```
+> "Run preflight check on my iOS app for App Store submission"
+> "Check for competitor terms in my app description"
+> "Verify privacy manifest compliance"
+> "Audit subscription metadata for App Store"
 ```
 
 ---
