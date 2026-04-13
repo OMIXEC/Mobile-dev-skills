@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+*.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+firestore-debug.log
+firebase-debug.log
+
+# Local config
+.env
+.env.local
+*.local
+
+# Build outputs
+build/
+*.apk
+*.ipa
+*.aab
+
+# Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# iOS
+Podfile.lock
+Pods/
+DerivedData/
+*.xcworkspace
+
+# Android
+.gradle/
+local.properties
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
