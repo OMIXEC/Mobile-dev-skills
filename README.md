@@ -25,12 +25,41 @@ Curated skills for building native and cross-platform mobile applications with A
 
 | Skill | Description |
 |-------|-------------|
+| **iOS/Swift** | |
 | `ios-swift-development` | Native iOS with Swift, SwiftUI, Combine, MVVM |
-| `flutter-development` | Cross-platform Flutter with Riverpod, GoRouter, Dio |
 | `mobile-development` | Full mobile development guide (iOS, Android, Flutter, Games) |
+| `app-store-preflight` | Scan iOS/macOS projects for App Store rejection patterns |
+| `app-store-screenshots` | Create App Store screenshots with AI |
+| **Flutter** | |
+| `flutter-development` | Cross-platform Flutter with Riverpod, GoRouter, Dio |
 | `refactor-swift-to-flutter` | Convert Swift code to Flutter/Dart |
 | `flutter-sdk-to-swift` | Convert Flutter/Dart code to Swift/iOS |
-| `app-store-preflight` | Scan iOS/macOS projects for App Store rejection patterns |
+| **Architecture** | |
+| `clean-architecture` | Clean Architecture patterns and principles |
+| `clean-code` | Clean Code practices and refactoring |
+| `senior-architect` | Architecture patterns and system design |
+| **Development Practices** | |
+| `systematic-debugging` | Debugging methodologies and techniques |
+| `wisdom-driven` | Inner motivation methodology (vs fear-based) |
+| `coding-guidelines` | Code style and linting rules |
+| `ai-coding-discipline` | AI coding best practices |
+| **Frontend/Design** | |
+| `frontend-design` | Frontend design principles |
+| `high-end-visual-design` | Premium UI/UX patterns |
+| `liquid-glass-design` | Glassmorphism effects |
+| `design-taste-frontend` | Design taste and aesthetics |
+| **Backend/DevOps** | |
+| `api-design-principles` | REST/GraphQL API design |
+| `postgresql-table-design` | PostgreSQL schema design |
+| `devops-engineer` | DevOps workflows and patterns |
+| `optimize-cicd-pipeline` | CI/CD optimization |
+| `openapi-spec-generation` | OpenAPI/Swagger generation |
+| **Testing** | |
+| `e2e-testing-patterns` | End-to-end testing patterns |
+| **Senior Guidance** | |
+| `senior-frontend` | Senior frontend engineer guidance |
+| `deep-research` | Deep research methodologies |
+| `app-icon-generator` | Generate app icons with AI |
 
 ---
 
