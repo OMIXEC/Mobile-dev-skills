@@ -1,59 +1,11 @@
 ---
-# ═══════════════════════════════════════════════════════════════════════════
-# SKILL: Mobile Development
-# Version: 2.0.0 | Updated: 2025-01
-# ═══════════════════════════════════════════════════════════════════════════
 name: mobile-development
-description: iOS (Swift, SwiftUI), Android (Kotlin, Compose), cross-platform (Flutter, React Native), and game development (Unity, Unreal).
-
-# ACTIVATION TRIGGERS
-triggers:
-  - ios
-  - android
-  - flutter
-  - react native
-  - mobile
-  - swift
-  - kotlin
-  - unity
-  - game development
-
-# SKILL PARAMETERS
-parameters:
-  platform:
-    type: string
-    enum: [ios, android, cross-platform, games]
-    required: true
-  project_type:
-    type: string
-    required: false
-    description: Type of app (social, productivity, game, etc.)
-
-# OUTPUT SPECIFICATION
-outputs:
-  recommended_stack:
-    type: object
-  learning_path:
-    type: array
-  portfolio_projects:
-    type: array
-
-# RELIABILITY
-retry:
-  max_attempts: 3
-  backoff: exponential
-
-# OBSERVABILITY
-observability:
-  log_level: info
-
-level: advanced
-prerequisites:
-  - core-development
-
-sasmp_version: "1.3.0"
-bonded_agent: 01-core-paths
-bond_type: PRIMARY_BOND
+description: >
+  Mobile development guide covering iOS (Swift, SwiftUI), Android (Kotlin,
+  Jetpack Compose), cross-platform (Flutter, React Native), and game development
+  (Unity, Unreal). Use when choosing a mobile platform, building native apps,
+  creating learning paths, or deciding between native and cross-platform
+  approaches.
 ---
 
 # Mobile Development Skill

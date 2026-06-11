@@ -1,13 +1,10 @@
 ---
-name: app-store-preflight-skills
+name: app-store-preflight
 description: >
   Scan an iOS/macOS Xcode project for common App Store rejection patterns before
   submission. Use when preparing an app for App Store review, after receiving a
   rejection from Apple, or when auditing metadata, subscriptions, privacy manifests,
-  entitlements, or design compliance. Integrates with the asc CLI for metadata inspection.
-metadata:
-  author: truongduy2611
-  version: "1.0"
+  entitlements, or design compliance.
 ---
 
 # App Store Preflight Skill

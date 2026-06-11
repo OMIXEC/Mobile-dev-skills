@@ -1,7 +1,9 @@
 ---
 name: app-icon-generator
-description: Generates app icons in all required sizes for iOS, Android, and PWA from a single source image. Use when user asks to "generate app icons", "create ios icons", "android app icons", "favicon", or "pwa icons".
-allowed-tools: [Read, Write, Bash, Glob]
+description: >
+  Generates app icons in all required sizes for iOS, Android, and PWA from a
+  single source image. Use when user asks to generate app icons, create iOS
+  icons, Android app icons, favicons, or PWA icons.
 ---
 
 # App Icon Generator
