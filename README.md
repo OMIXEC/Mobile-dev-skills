@@ -4,26 +4,32 @@ A curated collection of 27 AI agent skills for building native and cross-platfor
 
 ## Quick Install
 
+### Global Installation
+Install all 27 skills for use across **all** your projects:
 ```bash
-# Auto-detect your AI agent and install all skills globally
 curl -sL https://raw.githubusercontent.com/omixec/mobile-skills/main/install.sh | bash
 ```
 
+### Project-Specific Installation
+Install skills only into the **current** project directory:
+```bash
+curl -sL https://raw.githubusercontent.com/omixec/mobile-skills/main/install.sh | bash -s -- --project .
+```
+
+---
+
 After installing, restart your AI agent to start using the skills.
 
-### More Install Options
-
+### Advanced Options
+...
 ```bash
 # Install interactively (pick which skills you want)
 ./install.sh --interactive
 
-# Force a specific platform
-./install.sh --platform opencode
+# Link to local repo instead of copying (for developers)
+./install.sh --global --link
 
-# Install into a project directory (not global)
-./install.sh --project ./my-mobile-app
-
-# List all available skills without installing
+# List all available skills with descriptions
 ./install.sh --list
 ```
 
@@ -154,18 +160,18 @@ for d in skills/*/; do bash scripts/validate-skill.sh "$d"; done
 
 ## Manual Installation
 
-If you prefer to install manually:
+If you prefer to link the skills from your local clone:
 
 ```bash
-# Clone the repo
-git clone https://github.com/omixec/mobile-skills.git ~/mobile-skills
+# Link all skills to Claude Code global directory
+./install.sh --global
+```
 
-# Link into your agent's skills directory (example: Claude Code)
-mkdir -p "$HOME/Library/Application Support/Claude/Skills"
-cd "$HOME/Library/Application Support/Claude/Skills"
-for dir in ~/mobile-skills/skills/*/; do
-    ln -sf "$dir" "skill-$(basename "$dir")"
-done
+Or for a specific project:
+
+```bash
+cd /path/to/your-project
+/path/to/mobile-dev-skills/install.sh --project .
 ```
 
 ---

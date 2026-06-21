@@ -24,14 +24,13 @@ REPO_NAME="mobile-skills"
 # ── Platform detection ───────────────────────────────────────────────────────
 detect_platform() {
     local detected=""
-    if   [ -f "$HOME/Library/Application Support/Claude/config.json" ]; then detected="claude"
+    if   [ -f "$HOME/Library/Application Support/Claude/config.json" ] || [ -d "$HOME/Library/Application Support/Claude/Skills" ]; then detected="claude"
     elif [ -d "$HOME/.opencode" ]; then detected="opencode"
     elif [ -d "$HOME/.codex" ]; then detected="codex"
     elif [ -d "$HOME/.cursor" ]; then detected="cursor"
     fi
 
     if [ -z "$detected" ]; then
-        echo -e "${YELLOW}Could not auto-detect platform. Checking PATH...${NC}"
         if   command -v claude  &>/dev/null; then detected="claude"
         elif command -v opencode &>/dev/null; then detected="opencode"
         elif command -v codex   &>/dev/null; then detected="codex"
@@ -40,9 +39,14 @@ detect_platform() {
     fi
 
     if [ -z "$detected" ]; then
-        echo -e "${RED}Could not detect platform. Use --platform <name>${NC}"
-        echo "Valid: claude, opencode, codex, cursor"
-        exit 1
+        # Default to claude if we can't detect but are on macOS
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            detected="claude"
+        else
+            echo -e "${RED}Could not detect platform. Use --platform <name>${NC}"
+            echo "Valid: claude, opencode, codex, cursor"
+            exit 1
+        fi
     fi
     echo "$detected"
 }
@@ -74,9 +78,30 @@ list_skills() {
 }
 
 get_skill_description() {
-    local skill_dir="$SKILLS_SOURCE/$1"
-    if [ -f "$skill_dir/SKILL.md" ]; then
-        awk '/^---$/{f++;next} /^---$/{exit} f==1 && /^description:/{desc=1; sub(/^description:[[:space:]]*"?>[[:space:]]*|^description:[[:space:]]*"?/,""); gsub(/"$/,""); print; next} desc{f==2; exit}' "$skill_dir/SKILL.md" | tr -d '\n' | xargs
+    local skill_file="$SKILLS_SOURCE/$1/SKILL.md"
+    if [ -f "$skill_file" ]; then
+        # Use python if available for robust YAML parsing, otherwise fallback to simple grep
+        if command -v python3 &>/dev/null; then
+            python3 -c "
+import sys, re
+try:
+    content = open('$skill_file').read()
+    # Find the YAML frontmatter block
+    fm_match = re.search(r'^---\n(.*?)\n---', content, re.MULTILINE | re.DOTALL)
+    if fm_match:
+        fm = fm_match.group(1)
+        # Extract description value (handles folded/literal scalars and quotes)
+        desc_match = re.search(r'^description:\s*(?:>|\|)?\s*(.*?)(?:\n[a-z]|$)', fm, re.MULTILINE | re.DOTALL)
+        if desc_match:
+            desc = desc_match.group(1).strip().replace('\n', ' ')
+            desc = re.sub(r'\s+', ' ', desc)
+            print(desc[:120] + ('...' if len(desc) > 120 else ''))
+except:
+    pass
+" 2>/dev/null
+        else
+            grep "^description:" "$skill_file" | sed 's/^description:[[:space:]]*//;s/[">|]//g' | cut -c 1-120
+        fi
     fi
 }
 
@@ -93,23 +118,51 @@ get_skill_name() {
 # ── Install logic ────────────────────────────────────────────────────────────
 clone_or_update() {
     local target_dir="$1"
-    if [ -d "$target_dir/$REPO_NAME" ] && [ -d "$target_dir/$REPO_NAME/skills" ]; then
-        echo -e "${YELLOW}Updating $REPO_NAME...${NC}"
-        git -C "$target_dir/$REPO_NAME" pull --ff-only origin main 2>/dev/null \
-            || echo -e "${YELLOW}Could not git pull, using current version${NC}"
+    local local_repo_dir
+    # Determine script source location robustly
+    local_repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # If we're already in a cloned repo, we can use it
+    if [ -d "$local_repo_dir/skills" ]; then
+        SRC_DIR="$local_repo_dir"
+        if [ "$USE_LINK" = true ]; then
+            echo -e "${YELLOW}Linking skills source from $SRC_DIR...${NC}"
+            mkdir -p "$target_dir"
+            [ -L "$target_dir/$REPO_NAME" ] && rm "$target_dir/$REPO_NAME"
+            [ -d "$target_dir/$REPO_NAME" ] && rm -rf "$target_dir/$REPO_NAME"
+            ln -sf "$SRC_DIR" "$target_dir/$REPO_NAME"
+            SKILLS_SOURCE="$target_dir/$REPO_NAME/skills"
+            return
+        fi
     else
-        echo -e "${YELLOW}Copying skills from local source...${NC}"
-        mkdir -p "$target_dir/$REPO_NAME/skills"
-        cp -R "$SCRIPT_DIR/skills"/* "$target_dir/$REPO_NAME/skills/"
-        cp -R "$SCRIPT_DIR/scripts" "$target_dir/$REPO_NAME/" 2>/dev/null || true
-        cp -R "$SCRIPT_DIR/hooks" "$target_dir/$REPO_NAME/" 2>/dev/null || true
-        cp -R "$SCRIPT_DIR/references" "$target_dir/$REPO_NAME/" 2>/dev/null || true
-        cp "$SCRIPT_DIR/LICENSE" "$target_dir/$REPO_NAME/" 2>/dev/null || true
-        cp "$SCRIPT_DIR/README.md" "$target_dir/$REPO_NAME/" 2>/dev/null || true
-        # Initialize git so future pulls work if the repo goes live
-        git -C "$target_dir/$REPO_NAME" init -q 2>/dev/null || true
-        git -C "$target_dir/$REPO_NAME" remote add origin "$REPO_URL" 2>/dev/null || true
+        # Otherwise we need a clone (likely run via curl)
+        local tmp
+        tmp="$(mktemp -d)"
+        echo -e "${YELLOW}Fetching skills repository...${NC}"
+        git clone --depth 1 "$REPO_URL" "$tmp/$REPO_NAME" &>/dev/null || {
+            echo -e "${RED}Failed to clone repository. Is git installed?${NC}"
+            exit 1
+        }
+        SRC_DIR="$tmp/$REPO_NAME"
     fi
+
+    if [ -d "$target_dir/$REPO_NAME" ] && [ ! -L "$target_dir/$REPO_NAME" ]; then
+        echo -e "${YELLOW}Updating $REPO_NAME in $target_dir...${NC}"
+        if [ -d "$target_dir/$REPO_NAME/.git" ]; then
+            git -C "$target_dir/$REPO_NAME" pull --ff-only origin main 2>/dev/null \
+                || echo -e "${YELLOW}Could not git pull, using current version${NC}"
+        else
+            cp -R "$SRC_DIR"/* "$target_dir/$REPO_NAME/"
+        fi
+    else
+        echo -e "${YELLOW}Installing skills source to $target_dir/$REPO_NAME...${NC}"
+        mkdir -p "$target_dir"
+        [ -L "$target_dir/$REPO_NAME" ] && rm "$target_dir/$REPO_NAME"
+        [ -d "$target_dir/$REPO_NAME" ] && rm -rf "$target_dir/$REPO_NAME"
+        cp -R "$SRC_DIR" "$target_dir/$REPO_NAME"
+    fi
+    
+    SKILLS_SOURCE="$target_dir/$REPO_NAME/skills"
 }
 
 link_skills() {
@@ -133,7 +186,7 @@ link_skills() {
         esac
 
         if [ ! -d "$src" ]; then
-            echo -e "${RED}  - $skill (not found)${NC}"
+            echo -e "${RED}  - $skill (not found in $SKILLS_SOURCE)${NC}"
             ((skipped++)) || true
             continue
         fi
@@ -170,12 +223,12 @@ interactive_pick() {
     echo "Enter numbers separated by spaces, or 'all':"
     read -r choice
 
-    if [ "$choice" = "all" ]; then
+    if [ "$choice" = "all" ] || [ -z "$choice" ]; then
         selected=("${skills[@]}")
     else
         for num in $choice; do
             idx=$((num - 1))
-            if [ "$idx" -ge 0 ] 2>/dev/null && [ "$idx" -lt "${#skills[@]}" ]; then
+            if [[ "$num" =~ ^[0-9]+$ ]] && [ "$idx" -ge 0 ] && [ "$idx" -lt "${#skills[@]}" ]; then
                 selected+=("${skills[$idx]}")
             fi
         done
@@ -188,14 +241,13 @@ interactive_pick() {
 verify_links() {
     local target_dir="$1"
     local errors=0
-    for link in "$target_dir"/*/; do
-        if [ -L "${link%/}" ]; then
-            local resolved
-            resolved="$(readlink "${link%/}")"
-            if [ ! -d "$resolved" ]; then
-                echo -e "${RED}  Broken link: $link -> $resolved${NC}"
-                ((errors++)) || true
-            fi
+    # Use find to avoid glob expansion issues if dir is empty
+    find "$target_dir" -maxdepth 1 -type l | while read -r link; do
+        local resolved
+        resolved="$(readlink "$link")"
+        if [ ! -d "$resolved" ]; then
+            echo -e "${RED}  Broken link: $link -> $resolved${NC}"
+            ((errors++)) || true
         fi
     done
     return $errors
@@ -207,18 +259,24 @@ main() {
     local INTERACTIVE=false
     local PROJECT_DIR=""
     local LIST_ONLY=false
+    local GLOBAL=false
+    local USE_LINK=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --platform)   PLATFORM="$2"; shift 2 ;;
             --interactive|-i) INTERACTIVE=true; shift ;;
             --project)    PROJECT_DIR="$2"; shift 2 ;;
+            --global|-g)  GLOBAL=true; shift ;;
+            --link)       USE_LINK=true; shift ;;
             --list|-l)    LIST_ONLY=true; shift ;;
             --help|-h)
                 echo "Usage: install.sh [options]"
-                echo "  --platform <name>   Force platform (claude, opencode, codex, cursor)"
-                echo "  --interactive, -i   Pick skills interactively"
+                echo "  --global, -g        Install globally (default if no flags and no prompt)"
                 echo "  --project <dir>     Install into a project directory"
+                echo "  --link              Symlink source instead of copying (developers only)"
+                echo "  --interactive, -i   Pick skills interactively"
+                echo "  --platform <name>   Force platform (claude, opencode, codex, cursor)"
                 echo "  --list, -l          List available skills and exit"
                 exit 0
                 ;;
@@ -226,20 +284,18 @@ main() {
         esac
     done
 
-    # Determine script source location
+    # Determine initial SKILLS_SOURCE for listing and picking
+    local SCRIPT_DIR
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
+    
     if [ -d "$SCRIPT_DIR/skills" ]; then
         SKILLS_SOURCE="$SCRIPT_DIR/skills"
     else
-        local tmp
-        tmp="$(mktemp -d)"
-        echo -e "${YELLOW}Fetching skills repository...${NC}"
-        git clone --depth 1 "$REPO_URL" "$tmp/$REPO_NAME" 2>/dev/null || {
-            echo -e "${RED}Failed to clone repository${NC}"
-            exit 1
-        }
-        SKILLS_SOURCE="$tmp/$REPO_NAME/skills"
+        # Temporary source for discovery
+        local tmp_src
+        tmp_src="$(mktemp -d)"
+        git clone --depth 1 "$REPO_URL" "$tmp_src/$REPO_NAME" &>/dev/null
+        SKILLS_SOURCE="$tmp_src/$REPO_NAME/skills"
     fi
 
     # Auto-detect platform if not specified
@@ -265,35 +321,49 @@ main() {
     local TARGET_DIR
     if [ -n "$PROJECT_DIR" ]; then
         TARGET_DIR="$PROJECT_DIR/$(platform_project_dir "$PLATFORM")"
+    elif $GLOBAL; then
+        TARGET_DIR="$(platform_global_dir "$PLATFORM")"
     else
-        echo -e "${YELLOW}Install location:${NC}"
-        echo "  1) Global (all projects)"
-        echo "  2) Project (current directory)"
-        read -r -p "Choose [1]: " loc_choice
-        loc_choice="${loc_choice:-1}"
+        # If not specified, check if we're in an interactive terminal
+        if [ -t 0 ]; then
+            echo -e "${YELLOW}Install location:${NC}"
+            echo "  1) Global (all projects)"
+            echo "  2) Project (current directory)"
+            read -r -p "Choose [1]: " loc_choice
+            loc_choice="${loc_choice:-1}"
 
-        if [ "$loc_choice" = "2" ]; then
-            TARGET_DIR="$(pwd)/$(platform_project_dir "$PLATFORM")"
+            if [ "$loc_choice" = "2" ]; then
+                TARGET_DIR="$(pwd)/$(platform_project_dir "$PLATFORM")"
+            else
+                TARGET_DIR="$(platform_global_dir "$PLATFORM")"
+            fi
         else
+            # Non-interactive: default to global
+            echo -e "${YELLOW}Non-interactive session detected. Defaulting to Global install.${NC}"
             TARGET_DIR="$(platform_global_dir "$PLATFORM")"
         fi
     fi
 
-    # Clone/pull the repo
-    clone_or_update "$TARGET_DIR"
-    SKILLS_SOURCE="$TARGET_DIR/$REPO_NAME/skills"
+    # Clone/pull/copy the repo to its permanent home in the target dir
+    clone_or_update "$(dirname "$TARGET_DIR")"
+    
+    # After clone_or_update, SKILLS_SOURCE points to the permanent location
+    # but we need to ensure it's absolute
+    SKILLS_SOURCE="$(cd "$SKILLS_SOURCE" && pwd)"
 
     # Pick skills
     local -a SKILLS
     if $INTERACTIVE; then
-        while IFS= read -r line; do SKILLS+=("$line"); done < <(interactive_pick)
+        # interactive_pick returns list of skills
+        IFS=$'\n' read -d '' -r -a SKILLS < <(interactive_pick) || true
     else
+        # Default: all skills
         while IFS= read -r line; do SKILLS+=("$line"); done < <(list_skills)
     fi
 
     [ ${#SKILLS[@]} -eq 0 ] && { echo -e "${RED}No skills selected.${NC}"; exit 0; }
 
-    # Link skills
+    # Link skills into the target directory
     link_skills "$TARGET_DIR" "${SKILLS[@]}"
 
     # Verify
