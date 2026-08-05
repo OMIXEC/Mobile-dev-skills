@@ -1,39 +1,68 @@
 # Mobile Development Skills
 
-A curated collection of 27 AI agent skills for building native and cross-platform mobile applications. Works with Claude Code, OpenCode, Codex CLI, and Cursor.
+A curated collection of 27 AI agent skills for building native and cross-platform mobile applications. Works with Claude Code, Cursor, Copilot, and other AI coding agents.
 
 ## Quick Install
 
-### Global Installation
-Install all 27 skills for use across **all** your projects:
+Install these skills with the standard **`skills` CLI** (github.com/vercel-labs/skills). It auto-detects the AI agents you have installed (Claude Code, Cursor, Copilot, etc.) and configures the skills for them.
+
+### Direct install (`npx skills add`)
 ```bash
-curl -sL https://raw.githubusercontent.com/omixec/mobile-skills/main/install.sh | bash
+npx skills add omixec/Mobile-dev-skills
 ```
 
-### Project-Specific Installation
-Install skills only into the **current** project directory:
+### Fast one-liner (curl | bash)
+This downloads `install.sh`, which runs the exact same `npx skills add omixec/Mobile-dev-skills` command:
+
 ```bash
-curl -sL https://raw.githubusercontent.com/omixec/mobile-skills/main/install.sh | bash -s -- --project .
+curl -sL https://raw.githubusercontent.com/OMIXEC/Mobile-dev-skills/main/install.sh | bash
+```
+
+For a fully non-interactive install of every skill to every detected agent:
+
+```bash
+curl -sL https://raw.githubusercontent.com/OMIXEC/Mobile-dev-skills/main/install.sh | bash -s -- --all
+```
+
+### Install a specific skill
+```bash
+npx skills add omixec/Mobile-dev-skills --skill app-icon-generator
+```
+
+### Target a specific agent
+```bash
+npx skills add omixec/Mobile-dev-skills -a claude-code
+```
+
+### Global installation (user-level)
+```bash
+npx skills add omixec/Mobile-dev-skills -g
+```
+
+### Non-interactive / CI-CD mode
+```bash
+npx skills add omixec/Mobile-dev-skills --skill app-icon-generator -g -y
+```
+
+### List available skills in this repo (without installing)
+```bash
+npx skills add omixec/Mobile-dev-skills --list
 ```
 
 ---
 
 After installing, restart your AI agent to start using the skills.
 
-### Advanced Options
-...
+> **About the `skills` CLI** — `npx skills` is the official, community-standard installer for AI agent skills, built by Vercel Labs with context7. It reads any repository's `skills/*/SKILL.md` structure and installs each skill into the detected agent's skills directory. See https://skills.sh for details.
+
+### Manage / find skills
+
 ```bash
-# Install interactively (pick which skills you want)
-./install.sh --interactive
-
-# Link to local repo instead of copying (for developers)
-./install.sh --global --link
-
-# List all available skills with descriptions
-./install.sh --list
+npx skills find mobile        # search for mobile skills
+npx skills update             # update all installed skills
+npx skills list               # list installed skills
+npx skills remove <skill>    # remove a skill
 ```
-
----
 
 ## Available Skills
 
@@ -105,7 +134,7 @@ After installing, restart your AI agent to start using the skills.
 
 ```
 mobile-dev-skills/
-├── install.sh              # Unified installer for all platforms
+├── install.sh              # Thin wrapper that runs `npx skills add omixec/Mobile-dev-skills`
 ├── README.md
 ├── scripts/                # Shared utility scripts
 │   ├── test-mobile.sh      # Adaptive test runner (iOS/Flutter/Android)
@@ -117,9 +146,10 @@ mobile-dev-skills/
 └── skills/                 # 27 individual skill directories
     ├── ios-swift-development/
     ├── flutter-development/
-    ├── app-store-preflight/
     └── ...
 ```
+
+The `skills/` directory follows the [Agent Skills standard](https://agentskills.io) structure that `npx skills` discovers and installs.
 
 ---
 
@@ -160,34 +190,34 @@ for d in skills/*/; do bash scripts/validate-skill.sh "$d"; done
 
 ## Manual Installation
 
-If you prefer to link the skills from your local clone:
+Because this repo uses the standard `skills/*/SKILL.md` layout, you can also install directly from a local clone with the same `skills` CLI:
 
 ```bash
-# Link all skills to Claude Code global directory
-./install.sh --global
+git clone https://github.com/OMIXEC/Mobile-dev-skills.git
+cd Mobile-dev-skills
+npx skills add . -g          # or: ./install.sh
 ```
 
-Or for a specific project:
+Or install into the current project directory:
 
 ```bash
-cd /path/to/your-project
-/path/to/mobile-dev-skills/install.sh --project .
+npx skills add /path/to/Mobile-dev-skills
 ```
-
----
 
 ## Updating
 
+Update skills to the latest version from the repo:
+
 ```bash
-cd ~/mobile-skills
-git pull origin main
+npx skills update
 ```
 
-Or if installed via `install.sh`:
+Or, if installed globally, pull the repo and re-add:
 
 ```bash
-cd "$(find "$HOME" -path "*/Skills/mobile-skills" -type d 2>/dev/null | head -1)"
+cd ~/Mobile-dev-skills
 git pull origin main
+npx skills update
 ```
 
 ---
