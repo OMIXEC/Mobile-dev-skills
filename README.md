@@ -1,6 +1,6 @@
 # Mobile Development Skills
 
-A curated collection of 27 AI agent skills for building native and cross-platform mobile applications. Works with Claude Code, Cursor, Copilot, and other AI coding agents.
+A curated collection of 28 AI agent skills for building native and cross-platform mobile applications. Works with Claude Code, Cursor, Copilot, and other AI coding agents.
 
 ## Quick Install
 
@@ -101,6 +101,7 @@ npx skills remove <skill>    # remove a skill
 | `systematic-debugging` | Root-cause-first debugging methodology |
 | `wisdom-driven` | Inner motivation methodology for AI agents |
 | `deep-research` | Comprehensive multi-source research methodology |
+| `skillcli-installer` | Publish a skills collection via the standard `npx skills` CLI + curl-bash one-liner |
 
 ### Design & Frontend
 
@@ -143,7 +144,7 @@ mobile-dev-skills/
 │   └── hooks.md            # PreToolUse and PostToolUse patterns
 ├── references/             # Shared reference documentation
 │   └── testing-patterns.md # Test frameworks and best practices by platform
-└── skills/                 # 27 individual skill directories
+└── skills/                 # 28 individual skill directories
     ├── ios-swift-development/
     ├── flutter-development/
     └── ...
